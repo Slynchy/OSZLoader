@@ -1,0 +1,16 @@
+{
+  "name": "oszloader",
+  "version": "1.0.0",
+  "description": "Loads and parses .OSZ/.OSU files",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo test"
+  },
+  "keywords": [
+    "osu",
+    "loader",
+    "parser"
+  ],
+  "author": "Sam Lynch",
+  "license": "MIT"
+}

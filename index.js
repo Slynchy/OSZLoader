@@ -52,11 +52,26 @@ class OSULoader {
             case 'Colours':
                 break;
             case 'HitObjects':
-                break;
+                return this._handleHitObjects(splitFile, index);
             default:
                 throw new Error('Unrecognised section name! ' + sectionName);
         }
         return section;
+    }
+
+    static _handleHitObjects(splitFile, index){
+        let currLine;
+        while ((currLine = splitFile[++index]).trim() !== '') {
+            //x,y,time,type,hitSound...,extras
+            let currLineSplit = currLine.split(',');
+            let entry = {
+                x: +currLineSplit[0],
+                y: +currLineSplit[1],
+                time: +currLineSplit[2],
+                type: +currLineSplit[3],
+                hitSound: +currLineSplit[4]
+            };
+        }
     }
 
     static _getFileVersion(str) {

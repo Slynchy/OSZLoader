@@ -3,75 +3,117 @@
 //  By Sam Lynch
 //  Covered by MIT licensing
 //
-
+let fs = require('fs');
 
 class OSULoader {
 
-	constructor(){/* y u make instance :( */}
+    constructor() {/* y u make instance :( */
+    }
 
-	/**
-	 *
-	 * @param {Array<string>} splitFile The OSU file split into an array by newline
-	 * @param {int} index Index of the splitFile array to start at
-	 * @param {string} sectionName Name of the section to handle
-	 * @private
-	 */
-	static _handleOSUSection(splitFile, index, sectionName){
-		switch(sectionName){
-			case 'General':
-			case 'Kenobi!':
-				break;
-			case 'Editor':
-				break;
-			case 'Metadata':
-				break;
-			case 'Difficulty':
-				break;
-			case 'Events':
-				break;
-			case 'TimingPoints':
-				break;
-			case 'Colours':
-				break;
-			case 'HitObjects':
-				break;
-		}
-	}
+    /**
+     *
+     * @param {Array<string>} splitFile The OSU file split into an array by newline
+     * @param {int} index Index of the splitFile array to start at
+     * @param {string} sectionName Name of the section to handle
+     * @private
+     */
+    static _handleOSUSection(splitFile, index, sectionName) {
+        let section = {};
+        switch (sectionName) {
+            case 'General':
+            case 'Kenobi!':
+            case 'Editor':
+            case 'Metadata':
+            case 'Difficulty':
+                // handle by getting data after the colon as string
+                let lineDifficulty;
+                while ((lineDifficulty = splitFile[++index]).trim() !== '') {
+                    let key = lineDifficulty.substring(0, lineDifficulty.indexOf(':'));
+                    lineDifficulty = lineDifficulty.substring(lineDifficulty.indexOf(':') + 1).trim();
+                    section[key] = lineDifficulty;
+                }
+                break;
+            case 'Events':
+                // https://osu.ppy.sh/help/wiki/Storyboard_Scripting
+                break;
+            case 'TimingPoints':
+                // Offset, Milliseconds per Beat, Meter, Sample Set, Sample Index, Volume, Inherited, Kiai Mode
+                let lineTP;
+                section = [];
+                while ((lineTP = splitFile[++index]).trim() !== '') {
+                    let lineSplit = lineTP.split(',');
+                    for (let i = 0; i < lineSplit.length; i++) {
+                        lineSplit[i] = lineSplit[i].trim();
+                        lineSplit[i] = (+(lineSplit[i]));
+                    }
+                    section.push(lineSplit);
+                }
+                break;
+            case 'Colours':
+                break;
+            case 'HitObjects':
+                break;
+            default:
+                throw new Error('Unrecognised section name! ' + sectionName);
+        }
+        return section;
+    }
 
-	/**
-	 *
-	 * @param {String} file
-	 * @returns {Promise<void>}
-	 */
-	static ParseOSUFileAsync(file){
-		return new Promise((resolve, reject)=>{
-			let output = {};
+    static _getFileVersion(str) {
+        if (str.substring(0, 17) !== "osu file format v") {
+            throw new Error('Version not at top of file!');
+        }
 
-			// Check input
-			if(!file || typeof file !== 'string'){
-				reject('Invalid input! Must be a string!');
-			}
+        return (+str.substring(17));
+    }
 
-			// Split file by newline and trim excess
-			let split = file.split('\n');
-			for(let i = 0; i < split.length; i++){
-				split[i] = split[i].trim();
-			}
+    /**
+     *
+     * @param {String} file
+     * @returns {Promise<void>}
+     */
+    static ParseOSUFileAsync(file) {
+        return new Promise((resolve, reject) => {
+            let output = {};
 
-			for(let i = 0; i < split.length; i++){
-				let current = split[i];
+            // Check input
+            if (!file || typeof file !== 'string') {
+                reject('Invalid input! Must be a string!');
+            }
 
-				if(current[0] === '/' && current[1] === '/')
-					continue;                               // It's a comment, bugger off
-				else if(current[0] === '[' && current.indexOf(']') !== -1){
-					// it's a section start
-					let sectionName = current.match(/\[([^)]*)\]/)[1];
-					output[sectionName] = this._handleOSUSection(split, i, sectionName);
-				}
-			}
+            // Split file by newline and trim excess
+            let split = file.split('\n');
+            for (let i = 0; i < split.length; i++) {
+                split[i] = split[i].trim();
+            }
 
-		});
-	}
+            // First line is version
+            output['version'] = this._getFileVersion(split[0]);
+            console.log('Version is %i', output['version']);
+
+            for (let i = 0; i < split.length; i++) {
+                let current = split[i];
+
+                if (current.length < 2)
+                    continue; // Most likely an empty line
+
+                if (current[0] === '[' && current.indexOf(']') !== -1) {
+                    // it's a section start
+                    let sectionName = current.match(/\[([^)]*)\]/)[1];
+                    output[sectionName] = this._handleOSUSection(split, i, sectionName);
+                }
+            }
+
+            resolve(output);
+        });
+    }
 }
 
-module.exports = OSULoader;
+return OSULoader.ParseOSUFileAsync(fs.readFileSync('./sample_input/STYX_HELIX.osu', 'utf8')).then((output) => {
+    console.log(JSON.stringify(output));
+})
+    .catch((err) => {
+        console.error(err);
+    });
+
+//module.exports = OSULoader;

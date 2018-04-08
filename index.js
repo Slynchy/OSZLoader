@@ -30,9 +30,9 @@ class OSULoader {
                 while ((lineDifficulty = splitFile[++index]).trim() !== '') {
                     let key = lineDifficulty.substring(0, lineDifficulty.indexOf(':'));
                     lineDifficulty = lineDifficulty.substring(lineDifficulty.indexOf(':') + 1).trim();
-                    section[key] = lineDifficulty;
+                    section[key] = isNaN(parseFloat(lineDifficulty)) ? (lineDifficulty) : (+lineDifficulty);
                 }
-                break;
+                return section;
             case 'Events':
                 // https://osu.ppy.sh/help/wiki/Storyboard_Scripting
                 break;
@@ -48,9 +48,8 @@ class OSULoader {
                     }
                     section.push(lineSplit);
                 }
-                break;
+                return section;
             case 'Colours':
-                break;
                 return this._handleColours(splitFile, index);
             case 'HitObjects':
                 return this._handleHitObjects(splitFile, index);

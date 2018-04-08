@@ -51,11 +51,33 @@ class OSULoader {
                 break;
             case 'Colours':
                 break;
+                return this._handleColours(splitFile, index);
             case 'HitObjects':
                 return this._handleHitObjects(splitFile, index);
             default:
                 throw new Error('Unrecognised section name! ' + sectionName);
         }
+    }
+
+    static _handleColours(splitFile, index){
+        let section = {};
+
+        let lineColours;
+        while ((lineColours = splitFile[++index]).trim() !== '') {
+            let key = lineColours.substring(0, lineColours.indexOf(':'));
+            lineColours = lineColours.substring(lineColours.indexOf(':') + 1).trim();
+            lineColours = lineColours.split(',');
+            if(lineColours.length !== 3)
+                throw new Error('Invalid number of colours!');
+
+            let colourObj = {
+                r:(+lineColours[0]),
+                g:(+lineColours[1]),
+                b:(+lineColours[2])
+            };
+            section[key] = colourObj;
+        }
+
         return section;
     }
 

@@ -112,8 +112,8 @@ class OSULoader {
 return OSULoader.ParseOSUFileAsync(fs.readFileSync('./sample_input/STYX_HELIX.osu', 'utf8')).then((output) => {
     console.log(JSON.stringify(output));
 })
-    .catch((err) => {
-        console.error(err);
-    });
+.catch((err) => {
+    console.error(err);
+});
 
 //module.exports = OSULoader;

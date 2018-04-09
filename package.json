@@ -1,11 +1,8 @@
 {
-  "name": "oszloader",
-  "version": "1.0.0",
-  "description": "Loads and parses .OSZ/.OSU files",
+  "name": "osu-json",
+  "version": "0.8.0",
+  "description": "Converts stringified .OSU files into JSON",
   "main": "index.js",
-  "scripts": {
-    "test": "echo test"
-  },
   "keywords": [
     "osu",
     "loader",

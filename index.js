@@ -3,14 +3,12 @@
 //  By Sam Lynch
 //  Covered by MIT licensing
 //
-let fs = require('fs');
 
-class OSULoader {
+class OSUJSON {
 
-    constructor() {/* y u make instance :( */
-    }
+    constructor() {/* y u make instance :( */}
 
-    static get HitObjectTypes(){
+    static get HitObjectTypes() {
         return {
             'circle': 0x1,
             'slider': 0x2,
@@ -23,7 +21,7 @@ class OSULoader {
         }
     }
 
-    static get HitObjectSounds(){
+    static get HitObjectSounds() {
         return {
             'normal': 0x1,
             'whistle': 0x2,
@@ -32,26 +30,26 @@ class OSULoader {
         }
     }
 
-    static CreateHitObjectType(bitflags){
+    static CreateHitObjectType(bitflags) {
         let object = {
             isNewCombo: false,
             isOsuMania: false,
             type: undefined
         };
 
-        if(bitflags & this.HitObjectTypes['circle']){
+        if (bitflags & this.HitObjectTypes['circle']) {
             object.type = 'circle';
-        } else if(bitflags & this.HitObjectTypes['slider']){
+        } else if (bitflags & this.HitObjectTypes['slider']) {
             object.type = 'slider';
-        } else if(bitflags & this.HitObjectTypes['spinner']){
+        } else if (bitflags & this.HitObjectTypes['spinner']) {
             object.type = 'spinner';
         }
 
-        if(bitflags & this.HitObjectTypes['new_combo']){
+        if (bitflags & this.HitObjectTypes['new_combo']) {
             object.isNewCombo = true;
         }
 
-        if(bitflags & this.HitObjectTypes['osu!mania']){
+        if (bitflags & this.HitObjectTypes['osu!mania']) {
             object.isOsuMania = true;
         }
 
@@ -106,21 +104,21 @@ class OSULoader {
         }
     }
 
-    static GetHitSoundFromBitflag(bitflag){
-        if(bitflag & this.HitObjectSounds['normal']){
+    static GetHitSoundFromBitflag(bitflag) {
+        if (bitflag & this.HitObjectSounds['normal']) {
             return 'normal';
-        } else if(bitflag & this.HitObjectSounds['whistle']){
+        } else if (bitflag & this.HitObjectSounds['whistle']) {
             return 'whistle';
-        } else if(bitflag & this.HitObjectSounds['finish']){
+        } else if (bitflag & this.HitObjectSounds['finish']) {
             return 'finish';
-        } else if(bitflag & this.HitObjectSounds['clap']){
+        } else if (bitflag & this.HitObjectSounds['clap']) {
             return 'clap';
         } else {
             return 'normal';
         }
     }
 
-    static _handleColours(splitFile, index){
+    static _handleColours(splitFile, index) {
         let section = {};
 
         let lineColours;
@@ -128,13 +126,13 @@ class OSULoader {
             let key = lineColours.substring(0, lineColours.indexOf(':'));
             lineColours = lineColours.substring(lineColours.indexOf(':') + 1).trim();
             lineColours = lineColours.split(',');
-            if(lineColours.length !== 3)
+            if (lineColours.length !== 3)
                 throw new Error('Invalid number of colours!');
 
             let colourObj = {
-                r:(+lineColours[0]),
-                g:(+lineColours[1]),
-                b:(+lineColours[2])
+                r: (+lineColours[0]),
+                g: (+lineColours[1]),
+                b: (+lineColours[2])
             };
             section[key] = colourObj;
         }
@@ -142,10 +140,10 @@ class OSULoader {
         return section;
     }
 
-    static _getSampleSetType(sampleSet){
-        if(typeof(sampleSet) === 'undefined') throw new Error('Undefined addition set!');
+    static _getSampleSetType(sampleSet) {
+        if (typeof(sampleSet) === 'undefined') throw new Error('Undefined addition set!');
 
-        switch(sampleSet){
+        switch (sampleSet) {
             default:
             case 0:
                 return 'auto';
@@ -162,7 +160,7 @@ class OSULoader {
      * @param {string} string
      * @private
      */
-    static _handleExtras(data){
+    static _handleExtras(data) {
         let extras = {};
 
         // sampleSet:additionSet:customIndex:sampleVolume:filename
@@ -176,8 +174,8 @@ class OSULoader {
         return extras;
     }
 
-    static _getSliderType(typeStr){
-        switch(typeStr){
+    static _getSliderType(typeStr) {
+        switch (typeStr) {
             default:
             case 'L':
                 return 'linear';
@@ -196,14 +194,14 @@ class OSULoader {
      * @param {string} pathStr
      * @private
      */
-    static _handleSliderPath(pathStr){
+    static _handleSliderPath(pathStr) {
         let pathStrSplit = pathStr.split('|');
 
         let path = {
             sliderType: this._getSliderType(pathStrSplit[0])
         };
 
-        switch(path.sliderType){
+        switch (path.sliderType) {
             case 'linear':
                 // L|100:200
                 path['end'] = {
@@ -231,7 +229,7 @@ class OSULoader {
         return path;
     }
 
-    static _handleSlider(splitLine, entryRef){
+    static _handleSlider(splitLine, entryRef) {
         // x,y,time,type,hitSound,sliderType|curvePoints,repeat,pixelLength,edgeHitsounds,edgeAdditions,extras
 
         entryRef['path'] = this._handleSliderPath(splitLine[5]);
@@ -239,17 +237,17 @@ class OSULoader {
         entryRef['pixelLength'] = (+splitLine[7]);
         entryRef['edgeHitsounds'] = (splitLine[8].split('|'));
 
-        if(entryRef['edgeHitsounds'].length !== entryRef['repeat']+1){
+        if (entryRef['edgeHitsounds'].length !== entryRef['repeat'] + 1) {
             throw new Error('Number of edge hitsounds does not match repeat+1 syntax!');
         }
-        for(let i = 0; i < entryRef['repeat']+1; i++){
+        for (let i = 0; i < entryRef['repeat'] + 1; i++) {
             entryRef['edgeHitsounds'][i] = (+entryRef['edgeHitsounds'][i]);
         }
 
         return entryRef;
     }
 
-    static _handleHitObjects(splitFile, index){
+    static _handleHitObjects(splitFile, index) {
         let section = [];
 
         let currLine;
@@ -266,23 +264,23 @@ class OSULoader {
             };
 
             // regular circle
-            switch(entry.type.type){
+            switch (entry.type.type) {
                 case 'circle':
                     // x,y,time,type,hitSound,extras
-                    if(currLineSplit.length === 6){
+                    if (currLineSplit.length === 6) {
                         entry['extras'] = this._handleExtras(currLineSplit[5]);
                     }
                     break;
                 case 'slider':
                     entry = this._handleSlider(currLineSplit, entry);
-                    if(currLineSplit.length === 11){
+                    if (currLineSplit.length === 11) {
                         entry['extras'] = this._handleExtras(currLineSplit[10]);
                     }
                     break;
                 case 'spinner':
                     //x,y,time,type,hitSound,endTime,extras
                     entry['endTime'] = (+currLineSplit[10]);
-                    if(currLineSplit.length === 7){
+                    if (currLineSplit.length === 7) {
                         entry['extras'] = this._handleExtras(currLineSplit[6]);
                     }
                     break;
@@ -346,11 +344,4 @@ class OSULoader {
     }
 }
 
-return OSULoader.ParseOSUFileAsync(fs.readFileSync('./sample_input/STYX_HELIX.osu', 'utf8')).then((output) => {
-    console.log(JSON.stringify(output));
-})
-.catch((err) => {
-    console.error(err);
-});
-
-//module.exports = OSULoader;
+module.exports = OSUJSON;

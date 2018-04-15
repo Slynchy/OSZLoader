@@ -376,7 +376,6 @@ class OSUJSON {
 
             // First line is version
             output['version'] = this._getFileVersion(split[0]);
-            console.log('Version is %i', output['version']);
 
             for (let i = 0; i < split.length; i++) {
                 let current = split[i];

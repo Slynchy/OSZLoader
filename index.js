@@ -6,9 +6,17 @@
 
 class OSUJSON {
 
+	/**
+	 * @private
+	 * @constructor
+	 */
     constructor() {/* y u make instance :( */}
 
-    static get HitObjectTypes() {
+	/**
+	 * @returns {{circle: number, slider: number, new_combo: number, spinner: number, combo_col1: number, combo_col2: number, combo_col3: number, "osu!mania": number}}
+	 * @private
+	 */
+	static get _hitObjectTypes() {
         return {
             'circle': 0x1,
             'slider': 0x2,
@@ -21,7 +29,11 @@ class OSUJSON {
         }
     }
 
-    static get HitObjectSounds() {
+	/**
+	 * @returns {{normal: number, whistle: number, finish: number, clap: number}}
+	 * @private
+	 */
+	static get _hitObjectSounds() {
         return {
             'normal': 0x1,
             'whistle': 0x2,
@@ -30,26 +42,31 @@ class OSUJSON {
         }
     }
 
-    static CreateHitObjectType(bitflags) {
+	/**
+	 * @param bitflags
+	 * @returns {{isNewCombo: boolean, isOsuMania: boolean, type: string}}
+	 * @private
+	 */
+    static _createHitObjectType(bitflags) {
         let object = {
             isNewCombo: false,
             isOsuMania: false,
-            type: undefined
+            type: ''
         };
 
-        if (bitflags & this.HitObjectTypes['circle']) {
+        if (bitflags & this._hitObjectTypes['circle']) {
             object.type = 'circle';
-        } else if (bitflags & this.HitObjectTypes['slider']) {
+        } else if (bitflags & this._hitObjectTypes['slider']) {
             object.type = 'slider';
-        } else if (bitflags & this.HitObjectTypes['spinner']) {
+        } else if (bitflags & this._hitObjectTypes['spinner']) {
             object.type = 'spinner';
         }
 
-        if (bitflags & this.HitObjectTypes['new_combo']) {
+        if (bitflags & this._hitObjectTypes['new_combo']) {
             object.isNewCombo = true;
         }
 
-        if (bitflags & this.HitObjectTypes['osu!mania']) {
+        if (bitflags & this._hitObjectTypes['osu!mania']) {
             object.isOsuMania = true;
         }
 
@@ -104,20 +121,30 @@ class OSUJSON {
         }
     }
 
-    static GetHitSoundFromBitflag(bitflag) {
-        if (bitflag & this.HitObjectSounds['normal']) {
+	/**
+	 * @param bitflag
+	 * @returns {string}
+	 * @constructor
+	 */
+    static _getHitSoundFromBitflag(bitflag) {
+        if (bitflag & this._hitObjectSounds['normal']) {
             return 'normal';
-        } else if (bitflag & this.HitObjectSounds['whistle']) {
+        } else if (bitflag & this._hitObjectSounds['whistle']) {
             return 'whistle';
-        } else if (bitflag & this.HitObjectSounds['finish']) {
+        } else if (bitflag & this._hitObjectSounds['finish']) {
             return 'finish';
-        } else if (bitflag & this.HitObjectSounds['clap']) {
+        } else if (bitflag & this._hitObjectSounds['clap']) {
             return 'clap';
         } else {
             return 'normal';
         }
     }
 
+	/**
+	 * @param splitFile
+	 * @param index
+	 * @private
+	 */
     static _handleColours(splitFile, index) {
         let section = {};
 
@@ -129,17 +156,21 @@ class OSUJSON {
             if (lineColours.length !== 3)
                 throw new Error('Invalid number of colours!');
 
-            let colourObj = {
-                r: (+lineColours[0]),
-                g: (+lineColours[1]),
-                b: (+lineColours[2])
-            };
-            section[key] = colourObj;
+            section[key] = {
+				r: (+lineColours[0]),
+				g: (+lineColours[1]),
+				b: (+lineColours[2])
+			};
         }
 
         return section;
     }
 
+	/**
+	 * @param sampleSet
+	 * @returns {string}
+	 * @private
+	 */
     static _getSampleSetType(sampleSet) {
         if (typeof(sampleSet) === 'undefined') throw new Error('Undefined addition set!');
 
@@ -157,7 +188,7 @@ class OSUJSON {
     }
 
     /**
-     * @param {string} string
+     * @param {string} data
      * @private
      */
     static _handleExtras(data) {
@@ -174,6 +205,11 @@ class OSUJSON {
         return extras;
     }
 
+	/**
+	 * @param {string} typeStr
+	 * @returns {string}
+	 * @private
+	 */
     static _getSliderType(typeStr) {
         switch (typeStr) {
             default:
@@ -190,7 +226,6 @@ class OSUJSON {
     }
 
     /**
-     *
      * @param {string} pathStr
      * @private
      */
@@ -229,6 +264,12 @@ class OSUJSON {
         return path;
     }
 
+	/**
+	 * @param {Array<string>} splitLine
+	 * @param {Object} entryRef
+	 * @returns {Object} entryRef
+	 * @private
+	 */
     static _handleSlider(splitLine, entryRef) {
         // x,y,time,type,hitSound,sliderType|curvePoints,repeat,pixelLength,edgeHitsounds,edgeAdditions,extras
 
@@ -247,6 +288,12 @@ class OSUJSON {
         return entryRef;
     }
 
+	/**
+	 * @param {Array<string>} splitFile
+	 * @param {int} index
+	 * @returns {Array<object>} section
+	 * @private
+	 */
     static _handleHitObjects(splitFile, index) {
         let section = [];
 
@@ -258,8 +305,8 @@ class OSUJSON {
                 x: +currLineSplit[0],
                 y: +currLineSplit[1],
                 time: +currLineSplit[2],
-                type: this.CreateHitObjectType(+currLineSplit[3]),
-                hitSound: this.GetHitSoundFromBitflag(+currLineSplit[4]),
+                type: this._createHitObjectType(+currLineSplit[3]),
+                hitSound: this._getHitSoundFromBitflag(+currLineSplit[4]),
                 extras: undefined
             };
 
@@ -294,6 +341,11 @@ class OSUJSON {
         return section;
     }
 
+	/**
+	 * @param {string} str
+	 * @returns {number}
+	 * @private
+	 */
     static _getFileVersion(str) {
         if (str.substring(0, 17) !== "osu file format v") {
             throw new Error('Version not at top of file!');
@@ -334,7 +386,7 @@ class OSUJSON {
 
                 if (current[0] === '[' && current.indexOf(']') !== -1) {
                     // it's a section start
-                    let sectionName = current.match(/\[([^)]*)\]/)[1];
+                    let sectionName = current.match(/\[([^)]*)]/)[1];
                     output[sectionName] = this._handleOSUSection(split, i, sectionName);
                 }
             }

@@ -100,18 +100,7 @@ class OSUJSON {
                 // https://osu.ppy.sh/help/wiki/Storyboard_Scripting
                 break;
             case 'TimingPoints':
-                // Offset, Milliseconds per Beat, Meter, Sample Set, Sample Index, Volume, Inherited, Kiai Mode
-                let lineTP;
-                section = [];
-                while ((lineTP = splitFile[++index]).trim() !== '') {
-                    let lineSplit = lineTP.split(',');
-                    for (let i = 0; i < lineSplit.length; i++) {
-                        lineSplit[i] = lineSplit[i].trim();
-                        lineSplit[i] = (+(lineSplit[i]));
-                    }
-                    section.push(lineSplit);
-                }
-                return section;
+				return this._handleTimingPoints(splitFile, index);
             case 'Colours':
                 return this._handleColours(splitFile, index);
             case 'HitObjects':
@@ -122,9 +111,42 @@ class OSUJSON {
     }
 
 	/**
+	 * @private
+	 */
+	static _handleTimingPoints(splitFile, index){
+		let section = [];
+
+		let lineTP; // hehehe
+        let lastPositiveMPB; // last positive milliseconds per beat value
+		while ((lineTP = splitFile[++index]).trim() !== '') {
+			//Offset, Milliseconds per Beat, Meter, Sample Set, Sample Index, Volume, Inherited, Kiai Mode
+            let lineSplit = lineTP.split(',');
+            let line = {};
+            line.offset = +lineSplit[0];
+            line.mpb = +lineSplit[1];
+            if(line.mpb < 0){
+                // its a percentage
+                line.mpb = Math.abs(line.mpb) * 0.01;
+                line.mpb = lastPositiveMPB * line.mpb;
+            } else {
+                lastPositiveMPB = line.mpb;
+            }
+			line.meter = +lineSplit[2];
+			line.sampleSet = +lineSplit[3];
+			line.sampleIndex = +lineSplit[4];
+            line.volume = +lineSplit[5];
+            line.inherited = (+lineSplit[6]) === 1;
+            line.kiai = (+lineSplit[7]) === 1;
+
+            section.push(line);
+		}
+
+		return section;
+    }
+
+	/**
 	 * @param bitflag
 	 * @returns {string}
-	 * @constructor
 	 */
     static _getHitSoundFromBitflag(bitflag) {
         if (bitflag & this._hitObjectSounds['normal']) {

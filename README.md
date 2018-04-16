@@ -1,4 +1,4 @@
-# OSZLoader
+# osu-json
 An ECMAScript 6 NPM module for parsing .OSU files into JSON.
 
 ## Usage

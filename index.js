@@ -4,6 +4,8 @@
 //  Covered by MIT licensing
 //
 
+//let fs = require('fs');
+
 class OSUJSON {
 
 	/**
@@ -35,6 +37,7 @@ class OSUJSON {
 	 */
 	static get _hitObjectSounds() {
         return {
+	        'none': 0x0,
             'normal': 0x1,
             'whistle': 0x2,
             'finish': 0x4,
@@ -132,7 +135,7 @@ class OSUJSON {
                 lastPositiveMPB = line.mpb;
             }
 			line.meter = +lineSplit[2];
-			line.sampleSet = +lineSplit[3];
+			line.sampleSet = this._getSampleSetType(+lineSplit[3]);
 			line.sampleIndex = +lineSplit[4];
             line.volume = +lineSplit[5];
             line.inherited = (+lineSplit[6]) === 1;
@@ -149,17 +152,27 @@ class OSUJSON {
 	 * @returns {string}
 	 */
     static _getHitSoundFromBitflag(bitflag) {
+    	let result = {
+    	    'normal': false,
+    	    'whistle': false,
+    	    'finish': false,
+    	    'clap': false
+	    };
+
         if (bitflag & this._hitObjectSounds['normal']) {
-            return 'normal';
-        } else if (bitflag & this._hitObjectSounds['whistle']) {
-            return 'whistle';
-        } else if (bitflag & this._hitObjectSounds['finish']) {
-            return 'finish';
-        } else if (bitflag & this._hitObjectSounds['clap']) {
-            return 'clap';
-        } else {
-            return 'normal';
+	        result['normal'] = true;
         }
+        if (bitflag & this._hitObjectSounds['whistle']) {
+	        result['whistle'] = true;
+        }
+        if (bitflag & this._hitObjectSounds['finish']) {
+	        result['finish'] = true;
+        }
+        if (bitflag & this._hitObjectSounds['clap']) {
+	        result['clap'] = true;
+        }
+
+        return result;
     }
 
 	/**
@@ -277,6 +290,8 @@ class OSUJSON {
                 };
                 break;
             case 'bezier':
+
+            	break;
             case 'catmull':
                 // TODO: bezier and catmull curves
                 console.warn('Bezier and catmull curves not yet implemented');
@@ -298,13 +313,22 @@ class OSUJSON {
         entryRef['path'] = this._handleSliderPath(splitLine[5]);
         entryRef['repeat'] = (+splitLine[6]);
         entryRef['pixelLength'] = (+splitLine[7]);
-        entryRef['edgeHitsounds'] = (splitLine[8].split('|'));
 
-        if (entryRef['edgeHitsounds'].length !== entryRef['repeat'] + 1) {
-            throw new Error('Number of edge hitsounds does not match repeat+1 syntax!');
-        }
-        for (let i = 0; i < entryRef['repeat'] + 1; i++) {
-            entryRef['edgeHitsounds'][i] = (+entryRef['edgeHitsounds'][i]);
+        if(splitLine.length > 8){
+	        entryRef['edgeHitsounds'] = (splitLine[8].split('|'));
+
+	        for(let i = 0; i < entryRef['edgeHitsounds'].length; i++){
+		        entryRef['edgeHitsounds'][i] = this._getHitSoundFromBitflag(entryRef['edgeHitsounds'][i]);
+	        }
+
+	        if (entryRef['edgeHitsounds'].length !== entryRef['repeat'] + 1) {
+		        throw new Error('Number of edge hitsounds does not match repeat+1 syntax!');
+	        }
+	        for (let i = 0; i < entryRef['repeat'] + 1; i++) {
+		        entryRef['edgeHitsounds'][i] = (+entryRef['edgeHitsounds'][i]);
+	        }
+        } else {
+	        entryRef['edgeHitsounds'] = [];
         }
 
         return entryRef;
@@ -416,5 +440,10 @@ class OSUJSON {
         });
     }
 }
+//
+// let file = fs.readFileSync('./STYX_HELIX.osu', 'utf8');
+// return OSUJSON.ParseOSUFileAsync(file).then((output)=>{
+// 	console.log(output);
+// });
 
 module.exports = OSUJSON;

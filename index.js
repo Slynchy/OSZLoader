@@ -325,7 +325,7 @@ class OSUJSON {
 		        throw new Error('Number of edge hitsounds does not match repeat+1 syntax!');
 	        }
 	        for (let i = 0; i < entryRef['repeat'] + 1; i++) {
-		        entryRef['edgeHitsounds'][i] = (+entryRef['edgeHitsounds'][i]);
+		        entryRef['edgeHitsounds'][i] = (entryRef['edgeHitsounds'][i]);
 	        }
         } else {
 	        entryRef['edgeHitsounds'] = [];

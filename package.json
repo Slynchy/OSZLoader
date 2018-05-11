@@ -1,6 +1,6 @@
 {
   "name": "osu-json",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "description": "Converts stringified .OSU files into JSON",
   "main": "index.js",
   "keywords": [

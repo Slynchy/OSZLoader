@@ -400,6 +400,55 @@ class OSUJSON {
         return (+str.substring(17));
     }
 
+	/**
+	 * Gets the hitsounds required for a timing point (constructs filenames)
+	 * @param {Array<Object>} timingpoints
+	 * @param {Array<Object>} hitobjects
+	 * @private
+	 */
+	static _getRequiredSamples(timingpoints, hitobjects) {
+		// tp = {
+		// 	"offset": -1866,
+		// 	"mpb": 487.80487804878,
+		// 	"meter": 4,
+		// 	"sampleSet": "soft",
+		// 	"sampleIndex": 1,
+		// 	"volume": 20,
+		// 	"inherited": true,
+		// 	"kiai": false
+		// };
+
+		let filenames = [];
+
+		for(let t = 0; t < timingpoints.length-1; t++){
+			let tp = timingpoints[t];
+			let nextTp = timingpoints[t+1];
+			for(let h = 0; h < hitobjects.length; h++){
+				let hitobject = hitobjects[h];
+				if(hitobject.time > tp.offset && hitobject.time < nextTp.offset){
+					// matching TP
+					for(let k in hitobject.hitSound){
+						if(hitobject.hitSound[k] === true || k === 'normal'){
+							let filename = "" +
+								tp.sampleSet +
+								"-hit" +
+								k +
+								(tp.sampleIndex === 1 ? "" : tp.sampleIndex.toString()) +
+								".wav";
+							filenames.push(filename);
+						}
+					}
+				}
+			}
+		}
+
+		filenames = filenames.filter(function(item, pos, self) {
+			return self.indexOf(item) === pos;
+		});
+
+		return filenames;
+	}
+
     /**
      *
      * @param {String} file
@@ -435,6 +484,8 @@ class OSUJSON {
                     output[sectionName] = this._handleOSUSection(split, i, sectionName);
                 }
             }
+
+            output['RequiredFiles'] = OSUJSON._getRequiredSamples(output['TimingPoints'], output['HitObjects']);
 
             resolve(output);
         });

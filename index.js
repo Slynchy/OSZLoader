@@ -290,7 +290,21 @@ class OSUJSON {
                 };
                 break;
             case 'bezier':
-
+            	if(pathStrSplit.length > 2){
+					path['passthrough'] = {
+						x: (+pathStrSplit[pathStrSplit.length-2].split(':')[0]),
+						y: (+pathStrSplit[pathStrSplit.length-2].split(':')[1])
+					};
+				} else {
+					path['passthrough'] = {
+						x: (+pathStrSplit[pathStrSplit.length-1].split(':')[0]),
+						y: (+pathStrSplit[pathStrSplit.length-1].split(':')[1])
+					};
+				}
+				path['end'] = {
+					x: (+pathStrSplit[pathStrSplit.length-1].split(':')[0]),
+					y: (+pathStrSplit[pathStrSplit.length-1].split(':')[1])
+				};
             	break;
             case 'catmull':
                 // TODO: bezier and catmull curves

@@ -101,6 +101,7 @@ class OSUJSON {
                 return section;
             case 'Events':
                 // https://osu.ppy.sh/help/wiki/Storyboard_Scripting
+	            return this._handleEvents(splitFile,index);
                 break;
             case 'TimingPoints':
 				return this._handleTimingPoints(splitFile, index);
@@ -111,6 +112,27 @@ class OSUJSON {
             default:
                 throw new Error('Unrecognised section name! ' + sectionName);
         }
+    }
+
+    static _handleEvents(splitFile, index){
+    	let section = [];
+    	for(let i = index; i < splitFile.length && splitFile[i].trim() !== ''; i++){
+    		let lineSplit = splitFile[i].trim().split(',');
+    		if(lineSplit.length === 1 || (lineSplit[0][0] === '/' && lineSplit[0][1] === '/')) continue;
+
+    		switch(lineSplit[0]){
+			    case 'Sample':
+		        section.push({
+			        type: 'Sample',
+			        time: +lineSplit[1],
+			        layer: +lineSplit[2],
+			        file: lineSplit[3].replace('\"', '').replace('\"', ''),
+			        volume: +lineSplit[4]
+		        });
+		        break;
+		    }
+	    }
+	    return section;
     }
 
 	/**
@@ -393,6 +415,9 @@ class OSUJSON {
                     break;
                 case 'new_combo': // ??
                     break;
+	            default:
+		            entry['extras'] = this._handleExtras(currLineSplit[currLineSplit.length-1]);
+	            	break;
             }
 
             section.push(entry);
